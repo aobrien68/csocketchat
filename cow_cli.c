@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#define SLEEP_TIME (100000)
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
@@ -29,11 +30,15 @@ int main(int argc, char *argv[]) {
     memcpy(host->h_addr, &serv_addr.sin_addr.s_addr, sizeof(host->h_addr));
     serv_addr.sin_port = htons(port);
 
-    if (connect(clifd, &serv_addr, sizeof(struct sockaddr_in)) < 0) {
+    if (connect(clifd, &serv_addr, sizeof(struct sockaddr_in))) {
         return 4;
     }
 
-    while (1) {
+    char* buffer = malloc(256);
 
+    while (1) {
+        fgets(buffer, 256, stdin);
+        write(clifd, buffer 256);
+        while (strcmp())
     }
 }
