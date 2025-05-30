@@ -7,13 +7,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #define MAX_USERS (2)
-#define BUFFER_SIZE (256)
+#define HALF_BUFFER_SIZE (256) 
 
 int sockfd;
 char* buffer;
 pthread_mutex_t buffer_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t write_cond = PTHREAD_COND_INITIALIZER;
-pthread_cond_t read_cond = PTHREAD_COND_INITIALIZER;
+pthread_cond_t display_cond = PTHREAD_COND_INITIALIZER;
+pthread_cond_t input_cond = PTHREAD_COND_INITIALIZER;
 int write_time = 0;
 
 void* client_thread(void* arg) {
@@ -24,19 +24,21 @@ void* client_thread(void* arg) {
     if (*fd_add < 0) {
         exit(3);
     }
-    char last_message[BUFFER_SIZE];
+
+    char* input_buffer = &buffer[HALF_BUFFER_SIZE];
+    char last_message[HALF_BUFFER_SIZE];
     while (1) {
         pthread_mutex_lock(&buffer_lock);
         if (write_time) {
-            pthread_cond_signal(&write_cond);
-            pthread_cond_wait(&read_cond, &buffer_lock);
+            pthread_cond_signal(&display_cond);
+            pthread_cond_wait(&input_cond, &buffer_lock);
         } else {
-            if (0 >= read(*fd_add, buffer, BUFFER_SIZE-1)) {
+            if (0 >= read(*fd_add, input_buffer, HALF_BUFFER_SIZE-1)) {
                 exit(4);
             }
-            buffer[BUFFER_SIZE-1] = '\0';
-            if (strcmp(last_message, buffer) != 0) {
-                strcpy(last_message, buffer);
+            input_buffer[HALF_BUFFER_SIZE-1] = '\0';
+            if (strcmp(last_message, input_buffer) != 0) {
+                strcpy(last_message, input_buffer);
                 write_time = 1;
             }
         }
@@ -71,7 +73,7 @@ int main(int argc, char *argv[])
 
     pthread_t threads[MAX_USERS];
     int cli_fds[MAX_USERS];
-    buffer = malloc(BUFFER_SIZE);
+    buffer = malloc(HALF_BUFFER_SIZE * 2);
 
     for(int i=0; i<MAX_USERS; i++) {
         pthread_create(&threads[i], NULL, client_thread, &cli_fds[i]);
@@ -79,12 +81,12 @@ int main(int argc, char *argv[])
 
     while (1) {
         pthread_mutex_lock(&buffer_lock);
-        pthread_cond_wait(&write_cond, &buffer_lock);
+        pthread_cond_wait(&display_cond, &buffer_lock);
         for (int i=0; i<MAX_USERS; i++) {
-            write(cli_fds[i], buffer, BUFFER_SIZE);
+            write(cli_fds[i], buffer, HALF_BUFFER_SIZE);
         }
         write_time = 0;
-        pthread_cond_signal(&read_cond);
+        pthread_cond_signal(&input_cond);
         pthread_mutex_unlock(&buffer_lock);
     }
 }
