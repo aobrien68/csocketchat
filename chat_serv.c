@@ -12,8 +12,7 @@
 
 typedef fd_t = int;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     if (argc < 2) {
         return 1;
     }
@@ -37,23 +36,11 @@ int main(int argc, char *argv[])
 
     listen(sockfd, MAX_USERS);
 
-    //pthread_t threads[MAX_USERS];
     fd_t* cli_fds[] = calloc(5 * sizeof(fd_t));
-    /*char* buffers[MAX_USERS];  
-    char* caches[MAX_USERS];
-    for(int i=0; i<MAX_USERS; i++) {
-        buffers[i] = malloc(BUFFER_SIZE));
-        buffers[i][BUFFER_SIZE-1] = '\0';
-        caches[i] = malloc(BUFFER_SIZE));
-        memcpy(caches[i], buffers[i]);
-    }*/
-    // Front Half is display buffer back is input buffer
     char* true_buffer = calloc(2 * BUFFER_SIZE);
     char* cache = malloc(BUFFER_SIZE);
 
     while (1) {
-        //pthread_mutex_lock(&buffer_lock);
-        //pthread_cond_wait(&display_cond, &buffer_lock);
         for (int i=0; i<MAX_USERS; i++) {
             
             if (cli_fd[i] && read(cli_fds[i], true_buffer, (2 * BUFFER_SIZE) - 1) > 0
@@ -70,11 +57,6 @@ int main(int argc, char *argv[])
                 }
                 usleep(SLEEP_TIME);
             }
-            
-            write(cli_fds[i], buffer[], PARTIAL_BUFFER_SIZE);
         }
-        //write_time = 0;
-        //pthread_cond_signal(&input_cond);
-        //pthread_mutex_unlock(&buffer_lock);
     }
 }
