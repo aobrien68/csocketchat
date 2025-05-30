@@ -2,12 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#define SLEEP_TIME (100000)
 
-typedef fd_t = int;
+typedef int fd_t;
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -42,12 +42,12 @@ int main(int argc, char *argv[]) {
         return 4;
     }
 
-    while (1) {
-        if (read(clifd, buffer, 255) <= 0) {
-            break;
+    while (read(clifd, buffer, 255) > 0) {
+        if (strcmp(buffer, "")) {
+            printf("%s\n", buffer);
+            buffer[0] = '\0';
+        } else {
+            usleep(SLEEP_TIME);
         }
-        printf("%s\n", buffer);
-        memset(buffer, 0, 255);
-
     }
 }
