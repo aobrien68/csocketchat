@@ -45,6 +45,7 @@
         pthread_mutex_unlock(&buffer_lock);
     }
 }*/
+typedef fd_t = int;
 
 int main(int argc, char *argv[])
 {
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
     }
     int port = atoi(argv[1]);
 
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    fd_t sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         return 2;
     }
@@ -72,12 +73,15 @@ int main(int argc, char *argv[])
     listen(sockfd, MAX_USERS);
 
     //pthread_t threads[MAX_USERS];
-    int cli_fds[MAX_USERS];
-    char* buffer = malloc(PARTIAL_BUFFER_SIZE * MAX_USERS);
-    char* cache = malloc(PARTIAL_BUFFER_SIZE * MAX_USERS);
-    /*afor(int i=0; i<MAX_USERS; i++) {
-        pthread_create(&threads[i], NULL, client_thread, &cli_fds[i]);
-    }*/
+    fd_t* cli_fds[] = calloc(5 * sizeof(fd_t));
+    char* buffers[MAX_USERS];  
+    char* caches[MAX_USERS];
+    for(int i=0; i<MAX_USERS; i++) {
+        buffers[i] = malloc(BUFFER_SIZE));
+        buffers[i][BUFFER_SIZE-1] = '\0';
+        caches[i] = malloc(BUFFER_SIZE));
+        memcpy(caches[i], buffers[i]);
+    }
 
     while (1) {
         //pthread_mutex_lock(&buffer_lock);
