@@ -74,20 +74,32 @@ int main(int argc, char *argv[])
 
     //pthread_t threads[MAX_USERS];
     fd_t* cli_fds[] = calloc(5 * sizeof(fd_t));
-    char* buffers[MAX_USERS];  
+    /*char* buffers[MAX_USERS];  
     char* caches[MAX_USERS];
     for(int i=0; i<MAX_USERS; i++) {
         buffers[i] = malloc(BUFFER_SIZE));
         buffers[i][BUFFER_SIZE-1] = '\0';
         caches[i] = malloc(BUFFER_SIZE));
         memcpy(caches[i], buffers[i]);
-    }
+    }*/
+    // Front Half is display buffer back is input buffer
+    char* true_buffer = calloc(2 * BUFFER_SIZE);
 
     while (1) {
         //pthread_mutex_lock(&buffer_lock);
         //pthread_cond_wait(&display_cond, &buffer_lock);
         for (int i=0; i<MAX_USERS; i++) {
-            read(cli_fds[i], &buffer[i * PARTIAL_BUFFER_SIZE], PARTIAL_BUFFER_SIZE);
+            
+            if (!cli_fd[i] && read(cli_fds[i], true_buffer, (2 * BUFFER_SIZE) - 1) > 0
+            && strcmp(&true_buffer[BUFFER_SIZE], "")) {
+                strcpy(true_buffer, &true_buffer[BUFFER_SIZE]);    
+                //memset(&true_buffer[BUFFER_SIZE], 0, BUFFER_SIZE); only do to first one 
+                for (int j=0; j<MAX_USERS; j++) {
+                    if (cli_fd[i]) {
+                        write(cli_fd[i], true_buffer, 2 * BUFFER_SIZE);
+                    }
+                }
+            }
             
             write(cli_fds[i], buffer[], PARTIAL_BUFFER_SIZE);
         }
