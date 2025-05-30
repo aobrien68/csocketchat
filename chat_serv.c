@@ -7,16 +7,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #define MAX_USERS (2)
-#define HALF_BUFFER_SIZE (256) 
+#define PARTIAL_BUFFER_SIZE (256) 
 
-int sockfd;
-char* buffer;
-pthread_mutex_t buffer_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t display_cond = PTHREAD_COND_INITIALIZER;
-pthread_cond_t input_cond = PTHREAD_COND_INITIALIZER;
-int write_time = 0;
+//int sockfd;
+//char* buffer;
+//pthread_mutex_t buffer_lock = PTHREAD_MUTEX_INITIALIZER;
+//pthread_cond_t display_cond = PTHREAD_COND_INITIALIZER;
+//pthread_cond_t input_cond = PTHREAD_COND_INITIALIZER;
+//int write_time = 0;
 
-void* client_thread(void* arg) {
+/*void* client_thread(void* arg) {
     struct sockaddr_in cli_addr;
     socklen_t cli_len = sizeof(struct sockaddr_in);
     int* fd_add = (int*)arg;
@@ -44,7 +44,7 @@ void* client_thread(void* arg) {
         }
         pthread_mutex_unlock(&buffer_lock);
     }
-}
+}*/
 
 int main(int argc, char *argv[])
 {
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     }
     int port = atoi(argv[1]);
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         return 2;
     }
@@ -71,22 +71,24 @@ int main(int argc, char *argv[])
 
     listen(sockfd, MAX_USERS);
 
-    pthread_t threads[MAX_USERS];
+    //pthread_t threads[MAX_USERS];
     int cli_fds[MAX_USERS];
-    buffer = malloc(HALF_BUFFER_SIZE * 2);
-
-    for(int i=0; i<MAX_USERS; i++) {
+    char* buffer = malloc(PARTIAL_BUFFER_SIZE * MAX_USERS);
+    char* cache = malloc(PARTIAL_BUFFER_SIZE * MAX_USERS);
+    /*afor(int i=0; i<MAX_USERS; i++) {
         pthread_create(&threads[i], NULL, client_thread, &cli_fds[i]);
-    }
+    }*/
 
     while (1) {
-        pthread_mutex_lock(&buffer_lock);
-        pthread_cond_wait(&display_cond, &buffer_lock);
+        //pthread_mutex_lock(&buffer_lock);
+        //pthread_cond_wait(&display_cond, &buffer_lock);
         for (int i=0; i<MAX_USERS; i++) {
-            write(cli_fds[i], buffer, HALF_BUFFER_SIZE);
+            read(cli_fds[i], &buffer[i * PARTIAL_BUFFER_SIZE], PARTIAL_BUFFER_SIZE);
+            
+            write(cli_fds[i], buffer[], PARTIAL_BUFFER_SIZE);
         }
-        write_time = 0;
-        pthread_cond_signal(&input_cond);
-        pthread_mutex_unlock(&buffer_lock);
+        //write_time = 0;
+        //pthread_cond_signal(&input_cond);
+        //pthread_mutex_unlock(&buffer_lock);
     }
 }
