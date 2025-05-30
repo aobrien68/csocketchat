@@ -8,43 +8,8 @@
 #include <netinet/in.h>
 #define MAX_USERS (2)
 #define PARTIAL_BUFFER_SIZE (256) 
+#define SLEEP_TIME (100000)
 
-//int sockfd;
-//char* buffer;
-//pthread_mutex_t buffer_lock = PTHREAD_MUTEX_INITIALIZER;
-//pthread_cond_t display_cond = PTHREAD_COND_INITIALIZER;
-//pthread_cond_t input_cond = PTHREAD_COND_INITIALIZER;
-//int write_time = 0;
-
-/*void* client_thread(void* arg) {
-    struct sockaddr_in cli_addr;
-    socklen_t cli_len = sizeof(struct sockaddr_in);
-    int* fd_add = (int*)arg;
-    *fd_add = accept(sockfd, (struct sockaddr *) &cli_addr, &cli_len);
-    if (*fd_add < 0) {
-        exit(3);
-    }
-
-    char* input_buffer = &buffer[HALF_BUFFER_SIZE];
-    char last_message[HALF_BUFFER_SIZE];
-    while (1) {
-        pthread_mutex_lock(&buffer_lock);
-        if (write_time) {
-            pthread_cond_signal(&display_cond);
-            pthread_cond_wait(&input_cond, &buffer_lock);
-        } else {
-            if (0 >= read(*fd_add, input_buffer, HALF_BUFFER_SIZE-1)) {
-                exit(4);
-            }
-            input_buffer[HALF_BUFFER_SIZE-1] = '\0';
-            if (strcmp(last_message, input_buffer) != 0) {
-                strcpy(last_message, input_buffer);
-                write_time = 1;
-            }
-        }
-        pthread_mutex_unlock(&buffer_lock);
-    }
-}*/
 typedef fd_t = int;
 
 int main(int argc, char *argv[])
@@ -84,21 +49,26 @@ int main(int argc, char *argv[])
     }*/
     // Front Half is display buffer back is input buffer
     char* true_buffer = calloc(2 * BUFFER_SIZE);
+    char* cache = malloc(BUFFER_SIZE);
 
     while (1) {
         //pthread_mutex_lock(&buffer_lock);
         //pthread_cond_wait(&display_cond, &buffer_lock);
         for (int i=0; i<MAX_USERS; i++) {
             
-            if (!cli_fd[i] && read(cli_fds[i], true_buffer, (2 * BUFFER_SIZE) - 1) > 0
-            && strcmp(&true_buffer[BUFFER_SIZE], "")) {
-                strcpy(true_buffer, &true_buffer[BUFFER_SIZE]);    
-                //memset(&true_buffer[BUFFER_SIZE], 0, BUFFER_SIZE); only do to first one 
+            if (cli_fd[i] && read(cli_fds[i], true_buffer, (2 * BUFFER_SIZE) - 1) > 0
+            && strcmp(&true_buffer[BUFFER_SIZE], "")) { // New msg put in input half of buffer
+                strcpy(cache, &true_buffer[BUFFER_SIZE]); // new msg put in cache
                 for (int j=0; j<MAX_USERS; j++) {
-                    if (cli_fd[i]) {
-                        write(cli_fd[i], true_buffer, 2 * BUFFER_SIZE);
+                    if (cli_fd[j] && read(cli_fds[j], true_buffer, (2 * BUFFER_SIZE) - 1) > 0) { // New msg put in display half of buffer
+                        if (i == j) {
+                            memset(&true_buffer[BUFFER_SIZE], 0, BUFFER_SIZE); // Signal msg was read
+                        }
+                        while ()
+                        write(cli_fd[i], true_buffer, BUFFER_SIZE); // Write msg to display socket
                     }
                 }
+                usleep(SLEEP_TIME);
             }
             
             write(cli_fds[i], buffer[], PARTIAL_BUFFER_SIZE);
