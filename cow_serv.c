@@ -34,20 +34,30 @@ int main(int argc, char *argv[]) {
 
     listen(sockfd, 1);
 
-    char* buffer = malloc(256);
+    char* buffer = calloc(1, 256);
     buffer[255] = '\0';
 
-    fd_t clifd = accept(sockfd, &serv_addr, &socklen);
+    fd_t clifd = accept(sockfd, (struct sockaddr*)&serv_addr, (socklen_t*)&socklen);
     if (clifd < 0) {
         return 4;
     }
 
-    while (read(clifd, buffer, 255) > 0) {
-        if (strcmp(buffer, "")) {
+    /*while (read(clifd, buffer, 255) > 0) {
+        if (*buffer) {
+            usleep(SLEEP_TIME);
+        } else {
             printf("%s\n", buffer);
             buffer[0] = '\0';
-        } else {
-            usleep(SLEEP_TIME);
+            if (write(clifd, buffer, 256) < 0) {return 5;}
         }
+    }*/
+    write(clifd, buffer, 256);
+    printf("Entering Loop\n");
+    while (read(clifd, buffer, 256) > 0) {
+        printf("Before Print\n");
+        printf("%s\n", buffer);
+        printf("After Print\n");
+        usleep(SLEEP_TIME);
     }
+    printf("End: %s", buffer);
 }
