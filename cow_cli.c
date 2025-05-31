@@ -31,27 +31,16 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_family = AF_INET;
     memcpy(host->h_addr, &serv_addr.sin_addr.s_addr, sizeof(host->h_addr));
     serv_addr.sin_port = htons(port);
-    
+
     char* buffer = malloc(256);
-    buffer[0] = '\0';
 
     if (connect(clifd, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in))) {
         return 4;
     }
 
-    /*while (read(clifd, buffer, 256) > 0) {
-        if (*buffer) {
-            fgets(buffer, 256, stdin);
-            if (write(clifd, buffer, 256) < 0) {return 5;}
-        } else {
-            usleep(SLEEP_TIME);
-        }
-    }*/
     usleep(SLEEP_TIME);
-    while (read(clifd, buffer, 256) > 0) {
-        fgets(buffer, 256, stdin);
-        printf("\n");
+    while (fgets(buffer, 256, stdin) > 0) {
+        buffer[255] = '\0';
         if (write(clifd, buffer, 256) < 0) {return 5;}
-        usleep(SLEEP_TIME);
     }
 }
